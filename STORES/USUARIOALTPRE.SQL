@@ -1,17 +1,14 @@
-IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID('[ADMINISTRADORALT]') AND type IN ('P'))
-	DROP PROCEDURE ADMINISTRADORALT
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID('[USUARIOALT]') AND type IN ('P'))
+	DROP PROCEDURE USUARIOALT
 GO
 
-CREATE PROCEDURE ADMINISTRADORALT(
-	@Par_Nombre						VARCHAR(30),			-- Nombre del administrador
-	@Par_Apellido					VARCHAR(30),			-- Apellidos del administrador
-	@Par_CorreoElectronico			VARCHAR(50),			-- Correo del Administrador
-	@Par_Usuario					VARCHAR(20),			-- Usuario del administrador
-	@Par_Contrasena					VARCHAR(20),			-- Contraseña del Administrador
-	@Par_Status						VARCHAR(15),			-- Estatus de la cuenta del Administrador
-	@Par_NumeroCelular				VARCHAR(30),			-- Numero del celular del administrador
-	@Par_NumeroFijo					VARCHAR(30),			-- Numero de telefono del administrador
-	@Par_Rol						VARCHAR(20),			-- Rol sobre el sistema
+CREATE PROCEDURE USUARIOALT(
+	@Par_Nombre						VARCHAR(30),			-- Nombre del USUARIO
+	@Par_Apellido					VARCHAR(30),			-- Apellidos del USUARIO
+	@Par_CorreoElectronico			VARCHAR(50),			-- Correo del USUARIO
+	@Par_Usuario					VARCHAR(20),			-- Usuario del USUARIO
+	@Par_Contrasena					VARCHAR(20),			-- Contraseña del USUARIO
+	@Par_Status						VARCHAR(15),			-- Estatus de la cuenta del USUARIO
 
 	@Par_Salida						CHAR(1),				-- Parametro de salida de datos
 	@Par_NumErr 					CHAR(6) OUT,			-- Parametro de salida de numero de error
@@ -28,7 +25,7 @@ BEGIN
 
 	-- Declaraciones de variables
 	DECLARE @Var_Control			VARCHAR(50),			-- Variable de control
-			@Var_AdministradorID	INT						-- Identificador del Administrador
+			@Var_UsuarioID			INT						-- Identificador del USUARIO
 
 	-- Asignacion de constantes
 	SELECT	@Entero_Cero			= 0,					-- Asignacion de entero vacio	
@@ -43,9 +40,6 @@ BEGIN
 	SET @Par_Usuario				= ISNULL(@Par_Usuario,@Cadena_Vacia)
 	SET @Par_Contrasena				= ISNULL(@Par_Contrasena,@Cadena_Vacia)
 	SET @Par_Status					= ISNULL(@Par_Status,@Cadena_Vacia)
-	SET @Par_NumeroCelular			= ISNULL(@Par_NumeroCelular,@Cadena_Vacia)
-	SET @Par_NumeroFijo				= ISNULL(@Par_NumeroFijo,@Cadena_Vacia)
-	SET @Par_Rol					= ISNULL(@Par_Rol,@Cadena_Vacia)
 
 	-- Validacion de parametros
 	IF  @Par_Nombre					= @Cadena_Vacia
@@ -96,45 +90,21 @@ BEGIN
 		GOTO ManejoErrores
 	END
 
-	IF  @Par_NumeroCelular				= @Cadena_Vacia
-	BEGIN
-		SET @Par_NumErr 			= '000007'
-		SET @Par_ErrMen				= 'El número celular se encuentra vacío'
-		SET @Var_Contro				= 'Número celular'
-		GOTO ManejoErrores
-	END
 
-	IF  @Par_NumeroFijo				= @Cadena_Vacia
-	BEGIN
-		SET @Par_NumErr 			= '000008'
-		SET @Par_ErrMen				= 'El número fijo se encuentra vacío'
-		SET @Var_Control			= 'Número fijo'
-		GOTO ManejoErrores
-	END
+	EXEC FOLISAPLICAACT	@Par_NombreTabla	= 'USUARIO',
+						@Par_Folio			= @Var_UsuarioID OUT
 
-	IF  @Par_Rol					= @Cadena_Vacia
-	BEGIN
-		SET @Par_NumErr 			= '000009'
-		SET @Par_ErrMen				= 'El rol se encuentra vacío'
-		SET @Var_Contro				= 'Rol'
-		GOTO ManejoErrores
-	END
-
-	EXEC FOLIOSAPLICAACT	@Par_NombreTabla	= 'ADMINISTRADOR',
-							@Par_Folio			= @Var_AdministradorID OUT
-
-	INSERT INTO ADMINISTRADOR	(	
-									AdministradorID,		Nombre,						Apellido,			CorreoElectronico,		Usuario,
-									Contrasena,				NumeroCelular,				NumeroFijo,			Rol,					Status
+	INSERT INTO USUARIO	(	
+									UsuarioID,				Nombre,						Apellido,			CorreoElectronico,		Usuario,
+									Contrasena,				Status
 	)VALUES						(	
-									@Var_AdministradorID,	@Par_Nombre,				@Par_Apellido,		@CorreoElectronico,		@Par_Usuario,
-									ENCRYPTBYPASSPHRASE('password',@Par_Contrasena),	@Par_NumeroCelular,	@Par_NumeroFijo,		@Par_Rol,
-									@Par_Status
+									@Var_UsuarioID,			@Par_Nombre,				@Par_Apellido,		@CorreoElectronico,		@Par_Usuario,
+									ENCRYPTBYPASSPHRASE('password',@Par_Contrasena),	@Par_Status
 								)
 
 	SET @Par_NumErr 			= '000000'
-	SET @Par_ErrMen				= 'Registro de Administrador agrego correctamente'
-	SET @Var_Contro				= 'ADMINISTRADORALT'
+	SET @Par_ErrMen				= 'Registro de usuario agrego correctamente'
+	SET @Var_Contro				= 'USUARIOALT'
 
 	ManejoErrores:
 	IF @Par_Salida	= @SalidaSI
@@ -142,10 +112,8 @@ BEGIN
 		SELECT	@Par_NumErr 			AS NumErro
 				@Par_ErrMen				AS ErrMen
 				@Var_Control			AS control
-				@Var_AdministradorID	AS consecutivo
+				@Var_UsuarioID	AS consecutivo
 	END
 END
 
 GO
-
-
